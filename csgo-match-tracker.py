@@ -1,5 +1,12 @@
 import os
 
+# Constants - change to fit your game
+MAX_ROUND_NUM = 30
+HALFTIME_ROUND_NUM = 15
+WIN_SCORE = 16
+TEAM_ONE = "CT"
+TEAM_TWO = "T"
+
 
 class Team:
     """
@@ -21,11 +28,7 @@ class Team:
         self.team = ""
 
 
-MAX_ROUND_NUM = 30
-HALFTIME_ROUND_NUM = 15
-WIN_SCORE = 16
-TEAM_ONE = "CT"
-TEAM_TWO = "T"
+# Variable Initialization
 ourTeam = Team()
 otherTeam = Team()
 
@@ -73,6 +76,7 @@ def endGame(result):
             input("\n>> Error: Not a valid option. Push Enter to try again.\n")
 
 
+# Main program loop
 while True:
     while True:
         try:
@@ -94,8 +98,8 @@ while True:
     cls()
 
     roundNum = 1
-    lastScored = []  # Using a list as a stack to store last winners
-    playAgain = True
+    lastScored = []  # Using a list as a stack to store last winners (sort of like an undo operation stack)
+    playAgain = True  # Used to stay in the main while loop
 
     while True:
         while True:
@@ -111,9 +115,13 @@ while True:
             if WIN_SCORE - ourTeam.score == 1 or WIN_SCORE - otherTeam.score == 1 or MAX_ROUND_NUM - roundNum == 0:
                 print("== MATCH POINT ==")
             else:
+                if MAX_ROUND_NUM - roundNum == 1:
+                    text = "round"
+                else:
+                    text = "rounds"
                 print("We are:   " + str(WIN_SCORE - ourTeam.score) + " from winning\n" +
                       "They are: " + str(WIN_SCORE - otherTeam.score) + " from winning\n" +
-                      "MAX " + str(MAX_ROUND_NUM - roundNum) + " round(s) left")
+                      "At most, there are " + str(MAX_ROUND_NUM - roundNum) + text + " left after current round")
 
             try:
                 option = int(input("\nSelect:\n"
@@ -140,7 +148,7 @@ while True:
                             switch_sides()
                         lastScored.pop().reverseWin()
                     else:
-                        input("\n>> Error: There is no valid round to reverse. Press Enter to continue.")
+                        input("\n>> Error: Cannot go further back than the first round. Press Enter to continue.\n")
                     break
                 elif option == 5:
                     exit()
