@@ -100,6 +100,7 @@ while True:
     roundNum = 1
     lastScored = []  # Using a list as a stack to store last winners (sort of like an undo operation stack)
     playAgain = True  # Used to stay in the main while loop
+    reset = False
 
     while True:
         while True:
@@ -116,12 +117,12 @@ while True:
                 print("== MATCH POINT ==")
             else:
                 if MAX_ROUND_NUM - roundNum == 1:
-                    text = "round"
+                    text = " round"
                 else:
-                    text = "rounds"
+                    text = " rounds"
                 print("We are:   " + str(WIN_SCORE - ourTeam.score) + " from winning\n" +
                       "They are: " + str(WIN_SCORE - otherTeam.score) + " from winning\n" +
-                      "At most, there are " + str(MAX_ROUND_NUM - roundNum) + text + " left after current round")
+                      "At most " + str(MAX_ROUND_NUM - roundNum) + text + " left after current round")
 
             try:
                 option = int(input("\nSelect:\n"
@@ -150,6 +151,19 @@ while True:
                     else:
                         input("\n>> Error: Cannot go further back than the first round. Press Enter to continue.\n")
                     break
+                elif option == 4:
+                    while True:
+                        reset = input("Confirm reset? (Y/N)\n")
+                        if reset.upper() == "Y":
+                            # The first statement breaks out of the input checker
+                            reset = True
+                            break
+                        elif reset.upper() == "N":
+                            reset = False
+                            break
+                        else:
+                            input("\n>> Error: Not a valid option. Push Enter to try again.\n")
+                    break
                 elif option == 5:
                     exit()
                 else:
@@ -167,6 +181,10 @@ while True:
             break
         elif otherTeam.score == WIN_SCORE:
             endGame("LOSS")
+            break
+        if reset:
+            ourTeam.reset()
+            otherTeam.reset()
             break
         if not playAgain:  # playAgain is set in endgame()
             exit()
