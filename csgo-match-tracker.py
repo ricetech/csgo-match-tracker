@@ -70,8 +70,7 @@ def endGame(result):
             playAgain = True
             break
         elif playOption == "N":
-            playAgain = False
-            break
+            exit()
         else:
             input("\n>> Error: Not a valid option. Push Enter to try again.\n")
 
@@ -186,5 +185,3 @@ while True:
             ourTeam.reset()
             otherTeam.reset()
             break
-        if not playAgain:  # playAgain is set in endgame()
-            exit()
