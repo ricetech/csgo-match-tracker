@@ -99,7 +99,7 @@ while True:
     roundNum = 1
     lastScored = []  # Using a list as a stack to store last winners (sort of like an undo operation stack)
     playAgain = True  # Used to stay in the main while loop
-    reset = False
+    reset = ""
 
     while True:
         while True:
