@@ -1,4 +1,5 @@
 import os
+from enum import Enum, auto
 
 # Constants - change to fit your game
 MAX_ROUND_NUM = 30
@@ -11,10 +12,15 @@ TEAM_TWO = "T"
 class Team:
     """
     Basic definition for a team.
+    :var self.score: Stores how many rounds this team has won.
+    :var self.team: The side that this team is currently play on.
+    :var self.switchTeam: The side that this team will switch to during team switch.
     """
+
     def __init__(self):
-        self.score = 0
+        self.score = 0  # Variable to store
         self.team = ""
+        self.switchTeam = ""
 
     def roundWin(self):
         self.score += 1
@@ -26,6 +32,13 @@ class Team:
     def reset(self):
         self.score = 0
         self.team = ""
+        self.switchTeam = ""
+
+
+class Result(Enum):
+    WIN = auto
+    LOSS = auto
+    DRAW = auto
 
 
 # Variable Initialization
@@ -41,38 +54,90 @@ def cls():
 def switch_sides():
     """This function switches the two teams. Usually called at halftime."""
     global ourTeam, otherTeam
-    if ourTeam.team == TEAM_ONE:
-        ourTeam.team = TEAM_TWO
-        otherTeam.team = TEAM_ONE
-    else:
-        ourTeam.team = TEAM_ONE
-        otherTeam.team = TEAM_TWO
+    temp = ourTeam.team
+    ourTeam.team = ourTeam.switchTeam
+    ourTeam.switchTeam = temp
+
+    temp = otherTeam.team
+    otherTeam.team = otherTeam.switchTeam
+    otherTeam.switchTeam = temp
 
 
-def endGame(result):
+def print_match_summary(rounds, halftime, team):
+    """
+    This is a helper function for endGame(). It displays which team won which round.
+    :type rounds: list[Team]
+    :type halftime: int
+    :type team: Team
+    :param rounds: A list containing Team objects, ordered based on which team won which round.
+    :param halftime: The round number where teams switch sides. Defined in the outer scope as HALFTIME_ROUND_NUM.
+    :param team: The team that was being tracked (ourTeam).
+    :return: Nothing.
+    """
+
+    print("=== MATCH SUMMARY: ===")
+    for r in range(1, len(rounds) + 1):
+        roundWinner = rounds[r - 1]
+        roundText = "Round " + str(r) + " - "
+
+        if r < halftime + 1:
+            currentTeam = team.switchTeam
+            winningTeam = roundWinner.switchTeam
+            roundText += currentTeam + ": "
+        else:
+            currentTeam = team.team
+            winningTeam = roundWinner.team
+            roundText += currentTeam + ": "
+
+        if currentTeam == winningTeam:
+            roundText += Result.WIN.name
+        else:
+            roundText += Result.LOSS.name
+
+        print(roundText)
+
+
+def endGame(result, rounds):
     """
     This function is called at the end of a game. It displays the result (who won), the ending score,
     and then asks if another game is to be played.
-    :type result: str
+    :type result: Result
+    :type rounds: list[Team]
     :param result: The result of the game, usually "WIN", "LOSS", or "DRAW".
+    :param rounds: A list containing Team objects, ordered based on which team won which round.
     :return: Nothing.
     """
     global ourTeam, otherTeam, playAgain
 
+    cls()
+
     while True:
-        cls()
-        print("=== " + result + ": " + str(ourTeam.score) + " to " + str(otherTeam.score) + " ===")
-        playOption = input("Play again? (Y/N)\n")
-        playOption = playOption.upper()
-        if playOption == "Y":
-            ourTeam.reset()
-            otherTeam.reset()
-            playAgain = True
-            break
-        elif playOption == "N":
-            exit()
-        else:
-            input("\n>> Error: Not a valid option. Push Enter to try again.\n")
+        try:
+            print("=== " + result.name + ": " + str(ourTeam.score) + " to " + str(otherTeam.score) + " ===")
+            summaryOption = int(input("Enter one of the following options:\n" +
+                                      "1: Display match summary\n" +
+                                      "2: Play Again\n" +
+                                      "3: Quit\n"))
+
+            if summaryOption == 1:
+                cls()
+                print_match_summary(rounds, HALFTIME_ROUND_NUM, ourTeam)
+                print("=== " + result.name + ": " + str(ourTeam.score) + " to " + str(otherTeam.score) + " ===")
+                input("Push Enter to continue.\n")
+                cls()
+            elif summaryOption == 2:
+                ourTeam.reset()
+                otherTeam.reset()
+                playAgain = True
+                break
+            elif summaryOption == 3:
+                exit()
+            else:
+                input("\n>> Error: Not a valid option. Push Enter to try again.\n")
+                cls()
+        except ValueError:
+            input(">> Error: Invalid input. Push Enter to try again.\n")
+            cls()
 
 
 # Main program loop
@@ -83,12 +148,12 @@ while True:
             initTeam = input("Starting team: (CT/T):\n")
             initTeam = initTeam.upper()
             if initTeam == TEAM_ONE:
-                otherTeam.team = TEAM_TWO
-                ourTeam.team = TEAM_ONE
+                otherTeam.team = ourTeam.switchTeam = TEAM_TWO
+                ourTeam.team = otherTeam.switchTeam = TEAM_ONE
                 break
             elif initTeam == TEAM_TWO:
-                otherTeam.team = TEAM_ONE
-                ourTeam.team = TEAM_TWO
+                otherTeam.team = ourTeam.switchTeam = TEAM_ONE
+                ourTeam.team = otherTeam.switchTeam = TEAM_TWO
                 break
             else:
                 input("\n>> Error: Not a valid option. Push Enter to try again.\n")
@@ -124,7 +189,7 @@ while True:
                       "At most " + str(MAX_ROUND_NUM - roundNum) + text + " left after current round")
 
             try:
-                option = int(input("\nSelect:\n"
+                option = int(input("\nEnter one of the following options:\n"
                                    "1: Our team (" + ourTeam.team + ") wins\n" +
                                    "2: Their team (" + otherTeam.team + ") wins\n" +
                                    "3: Accidental advance (backtrack one round)\n" +
@@ -173,13 +238,13 @@ while True:
             # Halftime reached, switch sides
             switch_sides()
         elif ourTeam.score == WIN_SCORE - 1 and otherTeam.score == WIN_SCORE - 1:
-            endGame("DRAW")
+            endGame(Result.DRAW, lastScored)
             break
         elif ourTeam.score == WIN_SCORE:
-            endGame("WIN")
+            endGame(Result.WIN, lastScored)
             break
         elif otherTeam.score == WIN_SCORE:
-            endGame("LOSS")
+            endGame(Result.LOSS, lastScored)
             break
         if reset:
             ourTeam.reset()
