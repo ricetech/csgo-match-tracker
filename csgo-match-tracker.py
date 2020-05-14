@@ -48,7 +48,7 @@ other_team = Team()
 
 def clear_screen():
     """This function clears the console. It does not work in IDEs."""
-    os.system('clear_screen' if os.name == 'nt' else 'clear')
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 def switch_sides():
